@@ -78,7 +78,7 @@ var queryURL =  "api.dronestre.am/data "
             })(marker, i));
         //   console.log(locations[i][0], locations[i][1])
         }
-
+///
     });
 
 });
