@@ -1,14 +1,3 @@
-////////////////////////////Google Maps Initial Setup///////////////////////////////////////////
-
-var map;
-function initMap() {};
-function initMap() {
-    var myLatLng = {lat: 40.747, lng: -111.89};
-    var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 16,
-        center: myLatLng
-    });
-}
 
 // clear data in modal with clear button
 $("#clear").on('click', function(){
@@ -75,6 +64,19 @@ var queryURL =  "api.dronestre.am/data "
     var link = [];
     var lonArray = [];
     var latArray = [];
+    var number = [];
+    var injury = [];
+
+    var trace = {
+        x: [],
+        y: [],
+        mode: 'lines+markers',
+        name: 'Lines, Markers and Text',
+        text: [],
+        textposition: 'top',
+      type: 'scatter'
+    };
+
                             
     $("#close").on('click', function(){
         $("#modal-info").empty();
@@ -82,11 +84,11 @@ var queryURL =  "api.dronestre.am/data "
 
     $("#add-data").on("click", function(event) {
 
-        $("#loading").prepend("<img id='loader' src='assets/media/loader-bar.gif' />");
+    $("#loading").prepend("<img id='loader' src='assets/media/loader-bar.gif' />");
         
-        lonArray = [];
-        latArray = [];
-        event.preventDefault();
+    lonArray = [];
+    latArray = [];
+    event.preventDefault();
 
 //This is cleaning up the user inputed dates so that it can be used to query dronestr.am
         var userBeginMessy = $("#startDate").val()
@@ -118,8 +120,11 @@ var queryURL =  "api.dronestre.am/data "
         var dronePlace = data.strike[n].location;
         var droneCountry = data.strike[n].country;
         var droneNarrative = data.strike[n].narrative
-        var death = data.strike[n].deaths
+        var droneDeath = parseInt(data.strike[n].deaths_max)
         var dronelink = data.strike[n].bij_link
+        var droneNumber = parseInt(data.strike[n].number)
+        var droneDate = data.strike[n].date;
+        var droneInjury = data.strike[n].injuries;
 
         //this if statement finds data between the two inputed dates and pushes the selected data to the empty arrays made above
         if (dateSliceToo>=userBegin && dateSliceToo<=userEnd) {
@@ -130,14 +135,21 @@ var queryURL =  "api.dronestre.am/data "
             country.push([droneCountry]);
             places.push([dronePlace]);
             narrative.push([droneNarrative]);
-            killed.push([death]);
+            killed.push([droneDeath]);
             link.push([dronelink]);
+            number.push([droneNumber]);
+            injury.push([droneInjury])
+            trace.x.push(droneDate);
+            trace.y.push(droneDeath);
+            trace.text.push(droneCountry)
 
         }
     } 
 
-    console.log("this is the longitudinal array "+lonArray)
-    console.log("this is the latitudinal array "+latArray)
+    // console.log("this is the longitudinal array "+lonArray)
+    // console.log("this is the latitudinal array "+latArray)
+    
+    
 
 //this summitlon function will search the longitude array for any empty value and replace it with the longitude of the location
 
@@ -201,6 +213,13 @@ var queryURL =  "api.dronestre.am/data "
     //this was put into place to ensure that the data was corrected from the (possibly) corrupted form into a google maps useable form before pushing it to google maps
     if (latArray.indexOf("")==-1){
 
+        console.log("this is number of bombs "+number)
+        console.log("this is the number killed "+killed)
+    
+
+    var data = [trace];
+    Plotly.newPlot('myDiv', data);
+
         //starts auto zoom
         bounds  = new google.maps.LatLngBounds();
 
@@ -226,10 +245,10 @@ var queryURL =  "api.dronestre.am/data "
         
                 google.maps.event.addListener(marker, 'click', (function(marker, i) {
                     return function() {
-                        infowindow.setContent(places[i][0]);
+                        infowindow.setContent(killed[i][0]+" Killed and "+injury[i][0]+" Injured in "+places[i][0]);
                         infowindow.open(map, marker);
 
-                        $('#modal-info').append(" ", "  Strike narrative:  ", narrative[i],"<br>","  Number killed  ", killed[i], "!", "<br>", "Article about strike:  ", link[i]);
+                        $('#modal-info').append(" ", "  Narrative:  ", narrative[i],"<br>","  Total Killed  ", killed[i], "<br>", "Further Reading:  ", link[i]);
                     }
                 })(marker, i));
 
@@ -245,7 +264,25 @@ var queryURL =  "api.dronestre.am/data "
     });
 });
 
-//this function allows you to use your mobile browser (not chrome or safari) and be responsive still
+
+
+////////////////////////////Google Maps Initial Setup///////////////////////////////////////////
+
+var map;
+
+    function initMap() {
+        var myLatLng = {lat: 40.747, lng: -111.89};
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 16,
+            center: myLatLng
+        });
+    }
+
+
+
+
+
+//this function allows you to use your mobile browser (not chrome or safari) and still be responsive
 $(function () {
     var nua = navigator.userAgent
     var isAndroid = (nua.indexOf('Mozilla/5.0') > -1 && nua.indexOf('Android ') > -1 && nua.indexOf('AppleWebKit') > -1 && nua.indexOf('Chrome') === -1)
